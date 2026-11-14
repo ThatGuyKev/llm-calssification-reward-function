@@ -1,13 +1,13 @@
-"""QLoRA fine-tune Falcon3 as a 3-way classifier (A wins / B wins / tie).
+"""QLoRA fine-tune Qwen3-Embedding as a 3-way classifier (A wins / B wins / tie).
 
-Defaults target one H100 80 GB: Falcon3-1B-Base, max-len 2048, length-grouped batches, head+tail truncation,
+Defaults target one H100 80 GB: Qwen3-Embedding-0.6B, max-len 2048, length-grouped batches, head+tail truncation,
 zero-init classification head with 10x LR. Add --no-4bit for bf16 LoRA instead of QLoRA.
 Falls back to fp16 + GradScaler on GPUs without bf16.
 
 Examples:
   python train_qlora.py --smoke                                  # tiny end-to-end check
   python train_qlora.py --no-4bit                                # real run, bf16 LoRA
-  python train_qlora.py --model tiiuae/Falcon3-10B-Base --no-4bit --grad-ckpt --bs 4 --accum 8 --out outputs/falcon3-10b
+  python train_qlora.py --model Qwen/Qwen3-Embedding-4B --no-4bit --max-len 1024 --bs 8 --accum 4 --out outputs/qwen3-emb-4b
   python train_qlora.py --predict-only                           # reuse saved adapter for test preds
 """
 import argparse, json, math, os, random, time
@@ -16,11 +16,11 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer, Bits
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftModel
 
 p = argparse.ArgumentParser()
-p.add_argument("--model", default="tiiuae/Falcon3-1B-Base", help="any HF decoder LLM, e.g. tiiuae/Falcon3-7B-Base, tiiuae/Falcon3-10B-Base, google/gemma-2-9b-it")
+p.add_argument("--model", default="Qwen/Qwen3-Embedding-0.6B", help="any HF decoder LLM, e.g. Qwen/Qwen3-Embedding-4B, Qwen/Qwen3-Embedding-8B, tiiuae/Falcon3-7B-Base")
 p.add_argument("--no-4bit", action="store_true", help="bf16 LoRA instead of QLoRA (fits a 9B on an H100 80 GB, a bit better quality)")
 p.add_argument("--head-lr-mult", type=float, default=10.0, help="LR multiplier for the classification head")
 p.add_argument("--data", default="data/llm-classification-finetuning")
-p.add_argument("--out", default="outputs/falcon3-1b-qlora")
+p.add_argument("--out", default="outputs/qwen3-emb-0.6b")
 p.add_argument("--max-len", type=int, default=2048)
 p.add_argument("--n-train", type=int, default=0, help="0 = all")
 p.add_argument("--val-frac", type=float, default=0.05)
