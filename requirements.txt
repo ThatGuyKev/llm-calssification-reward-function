@@ -1,0 +1,13 @@
+numpy
+pandas
+scikit-learn
+lightgbm
+matplotlib
+jupyterlab
+ipykernel
+kagglehubtorch
+transformers
+peft
+bitsandbytes
+accelerate
+sentencepiece
